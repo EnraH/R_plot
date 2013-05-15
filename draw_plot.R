@@ -9,15 +9,13 @@ library(ggplot2)
 library(directlabels)
 library(plyr)
 
+# Prepare Data
+
 mydata <- read.table("data.csv", header=TRUE, sep=",", row.names="Country",check.names = FALSE)
 
 M <- melt(t(mydata))
 
-#attach(t(mydata))
-
 for (i in 1: nrow(M)) {
-
-
 
   if (M[i,3]==0) {
      M[i,4] <- 0
@@ -54,15 +52,13 @@ for (i in 2: nrow(M)) {
 
 colnames(M) <- c("year","country","value","FIT","GC","none","both","pol_change")
 
+################################################################################
+# First plots
 M1 <- M[,!(colnames(M) =="value")] 
-
 M2 <- melt(M1, id=c("year","country"))
-
-#filled.contour(M, main="Protein-Protein Interaction Potential",nlevels=2)
 
 p1 <- ggplot(M1, aes(x=year, y=FIT, fill=country))+ 
   geom_bar(stat="identity") 
-#  geom_text(aes(label = country), vjust = 1, size = 3)) 
 p2 <- ggplot(M1, aes(x=year, y=GC, fill=country))+ 
   geom_bar(stat="identity") 
 
@@ -74,79 +70,44 @@ p3 <- ggplot(M2, aes(x=year, y=value, fill=country))+
 ggsave("p3.pdf", plot = p3)
 p4 <- ggplot(M2, aes(x=year, y=value, fill=variable))+ 
   geom_bar(stat="identity") + facet_grid(country ~.)
-p5 <- ggplot(M, aes(x=year, y=pol_change, shape=country))+
-  geom_point(stat="identity")+
-#  geom_text(aes(label=country))+
-  geom_jitter(position = position_jitter(height = .1))
-#direct.label(p5,"perpendicular.grid")
 ggsave("p4.pdf", plot = p4)
-ggsave("p5.pdf", plot = p5)
 
 ########################
 # Set label coordinates 
 
-M_shifted <- M[,!(colnames(M) %in% c("value","pol_change"))]
-M_shifted <- melt(M_shifted, id=c("year","country"))
-M_shifted <- na.omit(M_shifted)
-M_shifted <- M_shifted[which(M_shifted$value != 0),]
-M_shifted$pos <- 0
+M6 <- M[,!(colnames(M) %in% c("value","pol_change"))]
+M6 <- melt(M6, id=c("year","country"))
+M6 <- na.omit(M6)
+M6 <- M6[which(M6$value != 0),]
+M6$pos <- 0
 for (y in 1990:2012){
-  M_shifted[which(M_shifted$year==y) , ]$pos = cumsum(M_shifted[which(M_shifted$year==y),4 ] )
+  M6[which(M6$year==y) , ]$pos = cumsum(M6[which(M6$year==y),4 ] ) -0.5
   }
 
-#M_shifted <- ddply(M_shifted, .(year), transform, pos = cumsum(FIT) - 0.5)
-#M_shifted <- melt(M_shifted,id = c("year","country"))
-p6 <- ggplot(M_shifted,aes(x=year,y=value,fill=variable)) + 
+p6 <- ggplot(M6,aes(x=year,y=value,fill=variable)) + 
     geom_bar(stat="identity") + 
     geom_text(aes(label=country,y=pos),angle=90,hjust=1,vjust=1,size=2) +
-    theme(legend.position = "none", axis.title.y= element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+    theme(legend.position = "none", axis.title.y= element_blank())
 
 ggsave("p6.pdf", plot = p6)
 
 ########################
-# Set shifted coordinates 
-
-#M_shifted <- M[,!(colnames(M) %in% c("value","FIT","GC","none","both"))]
-#M_shifted <- melt(M_shifted, id=c("year","country"))
-#M_shifted <- na.omit(M_shifted)
-#M_shifted <- M_shifted[which(M_shifted$value != 0),]
-#M_shifted$pos <- 0
-#M_shifted$pos_lab <- 0
-
-#for (y in 1990:2012){
-#  for (cat in 1:2){
-#    M_shifted[which(M_shifted$year==y & M_shifted$value == cat), ]$pos = cat + 0.05 * cumsum(M_shifted[which(M_shifted$year==y & M_shifted$value == cat),4 ] )
-#    M_shifted[which(M_shifted$year==y & M_shifted$value == cat), ]$pos_lab = M_shifted[which(M_shifted$year==y & M_shifted$value == cat), ]$pos + 0.01
-#  }}
-
-
-
-##M_shifted <- ddply(M_shifted, .(year), transform, pos = cumsum(FIT) - 0.5)
-##M_shifted <- melt(M_shifted,id = c("year","country"))
-#p7 <- ggplot(M_shifted,aes(x=year,y=pos, color=value)) + 
-#    geom_point(stat="identity") + 
-#    geom_text(aes(label=country,y=pos_lab),hjust=0,vjust=0,size=2) +
-#    theme(legend.position = "none", axis.text.y = element_blank(), axis.title.y= element_blank(),axis.ticks.y= element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
-
-#ggsave("p7.pdf", plot = p7)
-
-########################
 # Set label coordinates 
 
-M_shifted <- M[,!(colnames(M) %in% c("value","pol_change"))]
-M_shifted <- melt(M_shifted, id=c("year","country"))
-M_shifted <- na.omit(M_shifted)
-M_shifted <- M_shifted[which(M_shifted$value != 0),]
-M_shifted$pos <- 0
-M_shifted$pos_lab <- 0
+M8 <- M[,!(colnames(M) %in% c("value","pol_change"))]
+M8 <- melt(M8, id=c("year","country"))
+M8 <- na.omit(M8)
+M8 <- M8[which(M8$value != 0),]
+M8$pos <- 0
+M8$pos_lab <- 0
 
 for (y in 1990:2012){
   for (cat in c("FIT","GC","none","both")){
-    M_shifted[which(M_shifted$year==y & M_shifted$variable == cat), ]$pos = 0.05 * cumsum(M_shifted[which(M_shifted$year==y & M_shifted$variable == cat),4 ] )
-    M_shifted[which(M_shifted$year==y & M_shifted$variable == cat), ]$pos_lab = M_shifted[which(M_shifted$year==y & M_shifted$variable == cat), ]$pos + 0.01
+    M8[which(M8$year==y & M8$variable == cat), ]$pos = 0.05 * cumsum(M8[which(M8$year==y & M8$variable == cat),4 ] )
+    M8[which(M8$year==y & M8$variable == cat), ]$pos_lab = M8[which(M8$year==y & M8$variable == cat), ]$pos + 0.01
   }}
 
-p8 <- ggplot(M_shifted,aes(x=year,y=pos, color=country),ylab="") + 
+p8 <- ggplot(M8,aes(x=year,y=pos, color=country),ylab="") + 
     geom_point(stat="identity") + 
     geom_text(aes(label=country,y=pos_lab),hjust=0,vjust=0,size=2) + 
     facet_grid(variable ~.) + 
